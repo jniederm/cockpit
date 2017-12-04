@@ -356,7 +356,28 @@ var plugins = [
         }
     }),
     new copy(info.files),
-    new extract("[name].css")
+    new extract("[name].css"),
+    {
+        apply: function (compiler) {
+            compiler.plugin('watch-run', (watching, callback) => {
+                console.log('change spotted')
+                callback()
+            })
+            compiler.plugin('after-emit', (compilation, callback) => {
+                const child_process = require('child_process')
+                const vagrantProcess = child_process.spawn('vagrant', ['rsync'], { stdio: 'inherit' })
+                vagrantProcess.on('exit', (code /*, signal*/) => {
+                    const message = code === 0
+                        ? 'vagrant rsync finished'
+                        : 'vagrant rsync failed'
+                    console.log(message)
+                    child_process.exec(`notify-send '${message}'`)
+                    callback()
+                })
+                console.log('running vagrant rsync')
+            })
+        }
+    }
 ];
 
 var output = {
