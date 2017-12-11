@@ -35,3 +35,13 @@ function getKeys(object) {
 export function getValues(object) {
     return getKeys(object).map(key => object[key])
 }
+
+/**
+ * @return {Array<{key: *, value: *}>} all enumerable key-value pairs
+ */
+export function getPairs(object) {
+    return getKeys(object).map(key => ({
+        key,
+        value: object[key]
+    }))
+}
