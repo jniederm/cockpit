@@ -406,6 +406,29 @@ LABEL io.projectatomic.nulecule.atomicappversion="0.1.11" \
         wait(lambda: "virt-launcher-testvm" in o.execute("oc get pods"))
         wait(lambda: "Running" in o.execute("oc get pods | grep virt-launcher-testvm"))
 
+    def testVirtualMachinesTabPresent(self):
+        self.bootstrapKubevirt()
+
+        b = self.browser
+        self.login_and_go("/kubernetes")
+        b.wait_present("#kubernetes-navigation")
+        self.assertTrue(b.is_present("#vms-menu-link"))
+
+    def testVirtualMachinesListed(self):
+        self.bootstrapKubevirt()
+
+        o = self.openshift
+        o.execute("oc create -f /kubevirt/iscsi-demo-target.yaml")  # disk for test VM
+        o.execute("oc create -f /kubevirt/vm.yaml")  # let's create a VM
+        wait(lambda: "testvm" in o.execute("oc get vm"), msg='Deployment of virtual machine "testvm" failed.')
+
+        b = self.browser
+        self.login_and_go("/kubernetes")
+        b.wait_present("#vms-menu-link")
+        b.click("#vms-menu-link")
+        b.wait_present("tr[data-row-id='vm-testvm']")
+        self.assertTrue(b.is_present("tr[data-row-id='vm-testvm']"))
+
 
 @skipImage("Kubernetes not packaged", "debian-stable", "debian-testing", "ubuntu-1604", "ubuntu-stable", "fedora-i386")
 @skipImage("No cockpit-kubernetes packaged", "continuous-atomic", "fedora-atomic", "rhel-atomic")
